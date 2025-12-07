@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 //import 'package:hive_flutter/adapters.dart';
-import 'package:notifly_frontend/colors.dart';
 import 'package:notifly_frontend/extensions.dart';
 
 class PadScaffold extends StatelessWidget {

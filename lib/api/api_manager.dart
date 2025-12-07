@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:notifly_frontend/models/chat_model.dart';
 import 'dart:convert';
+
+import 'package:notifly_frontend/models/message_model.dart';
+
+part 'chat_api.dart';
+part 'message_api.dart';
 
 class ApiManager extends ChangeNotifier {
   ApiManager._internal();
