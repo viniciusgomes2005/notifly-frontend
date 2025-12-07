@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/adapters.dart';
 import 'package:notifly_frontend/router/app_router.dart';
 import 'package:url_strategy/url_strategy.dart';
 
-void main() {
-  final appRouter = AppRouter(); // instancia
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final appRouter = AppRouter();
   setPathUrlStrategy();
+  await Hive.initFlutter();
+  await Hive.openBox('settings');
 
   runApp(MyApp(appRouter: appRouter));
 }

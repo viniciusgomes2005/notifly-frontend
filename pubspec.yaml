@@ -36,6 +36,9 @@ dependencies:
   cupertino_icons: ^1.0.8
   auto_route: ^11.0.0
   url_strategy: ^0.3.0
+  toastification: ^3.0.3
+  figma_squircle: ^0.6.3
+  hive_flutter: ^1.1.0
 
 dev_dependencies:
   flutter_test:
