@@ -12,3 +12,5 @@ const Color pastelPurple = Color(0xFFD2B9FF);
 const Color lightGrey = Color(0xFFC8C1D4);
 const Color pastelPink = Color(0xFFF1AFC0);
 const Color pastelPeach = Color(0xFFF3B7A6);
+const Color lightBg = Color(0xFFF3F3F7);
+const Color darkBg = Color(0xFF1E1C26);

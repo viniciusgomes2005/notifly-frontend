@@ -5,6 +5,18 @@ import 'package:notifly_frontend/router/app_router.gr.dart';
 class AppRouter extends RootStackRouter {
   @override
   List<AutoRoute> get routes => [
-    AutoRoute(path: '/home', page: HomeRoute.page, initial: true),
+    AutoRoute(
+      path: '/notifly',
+      page: NavBarRoute.page,
+      initial: true,
+      children: [
+        CustomRoute(
+          page: HomeRoute.page,
+          path: 'home',
+          initial: true,
+          transitionsBuilder: TransitionsBuilders.fadeIn,
+        ),
+      ],
+    ),
   ];
 }

@@ -20,7 +20,6 @@ class PadScaffold extends StatelessWidget {
     //final username = Hive.box("userData").get("username") ?? "";
     //final isAdm = Hive.box("userData").get("role") == "admin" ? true : false;
     return Scaffold(
-      backgroundColor: beige,
       body: Row(
         children: [
           Expanded(
@@ -38,10 +37,7 @@ class PadScaffold extends StatelessWidget {
                             fontSize: 24,
                           ),
                         ),
-                        Text(
-                          subtitle,
-                          style: const TextStyle(color: grey, fontSize: 12),
-                        ),
+                        Text(subtitle, style: const TextStyle(fontSize: 12)),
                       ],
                     ),
                     if (actions != null) actions!,
