@@ -28,7 +28,6 @@ class _NavBarPageState extends State<NavBarPage> {
     bool isDark = settBox.get('darkMode', defaultValue: false) as bool;
 
     return PadScaffold(
-      title: "NotiFly",
       subtitle: "Your personal book notifier",
       actions: Switch(
         value: isDark,
@@ -39,6 +38,7 @@ class _NavBarPageState extends State<NavBarPage> {
           });
         },
       ),
+      useDarkLogo: isDark,
       body: const AutoRouter(),
     );
   }

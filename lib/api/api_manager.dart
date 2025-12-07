@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:notifly_frontend/models/chat_model.dart';
 import 'dart:convert';
 
 import 'package:notifly_frontend/models/message_model.dart';
+import 'package:notifly_frontend/models/user_model.dart';
 
 part 'chat_api.dart';
 part 'message_api.dart';
+part 'auth_api.dart';
 
 class ApiManager extends ChangeNotifier {
   ApiManager._internal();
@@ -14,7 +17,7 @@ class ApiManager extends ChangeNotifier {
   factory ApiManager() {
     return _instance;
   }
-  final String _baseUrl = 'localhost:4000/';
+  final String _baseUrl = 'http://localhost:4000/';
   BuildContext? navigationContext;
 
   bool _isAuthenticated = false; // Estado de autenticação

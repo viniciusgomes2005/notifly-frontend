@@ -10,6 +10,7 @@ void main() async {
   setPathUrlStrategy();
   await Hive.initFlutter();
   await Hive.openBox('settings');
+  await Hive.openBox('userData');
 
   runApp(MyApp(appRouter: appRouter));
 }

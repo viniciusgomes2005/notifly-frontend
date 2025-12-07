@@ -17,13 +17,29 @@ class UserModel {
     final rawId = j['user_id'] ?? j['id'];
     return UserModel(
       id: rawId?.toString() ?? '',
-      name: j['name'] ?? '',
-      email: j['email'] ?? '',
+      name: j['name']?.toString() ?? '',
+      email: j['email']?.toString() ?? '',
       photoUrl: j['photo_url'] as String?,
       createdAt: j['created_at'] != null
           ? DateTime.tryParse(j['created_at'].toString())
           : null,
     );
+  }
+
+  factory UserModel.fromLoginJson(Map<String, dynamic> json) {
+    final inner = json['user'];
+    if (inner is Map<String, dynamic>) {
+      return UserModel.fromJson(inner);
+    }
+    return UserModel.fromJson(json);
+  }
+
+  factory UserModel.fromSignUpJson(Map<String, dynamic> json) {
+    final inner = json['user'];
+    if (inner is Map<String, dynamic>) {
+      return UserModel.fromJson(inner);
+    }
+    return UserModel.fromJson(json);
   }
 
   Map<String, dynamic> toJson() {
