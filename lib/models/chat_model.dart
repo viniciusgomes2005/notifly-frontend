@@ -2,6 +2,8 @@ class ChatModel {
   final String id;
   final String user1Id;
   final String user2Id;
+  final String? user1Name;
+  final String? user2Name;
   final bool isSystem;
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -10,6 +12,8 @@ class ChatModel {
     required this.id,
     required this.user1Id,
     required this.user2Id,
+    this.user1Name,
+    this.user2Name,
     required this.isSystem,
     this.createdAt,
     this.updatedAt,
@@ -20,6 +24,8 @@ class ChatModel {
       id: (j['chat_id'] ?? j['id']).toString(),
       user1Id: (j['user_1_id'] ?? '').toString(),
       user2Id: (j['user_2_id'] ?? '').toString(),
+      user1Name: j['user_1_name'] as String?,
+      user2Name: j['user_2_name'] as String?,
       isSystem: (j['is_system'] as bool?) ?? false,
       createdAt: j['created_at'] != null
           ? DateTime.tryParse(j['created_at'].toString())
@@ -35,28 +41,12 @@ class ChatModel {
       'chat_id': id,
       'user_1_id': user1Id,
       'user_2_id': user2Id,
+      'user_1_name': user1Name,
+      'user_2_name': user2Name,
       'is_system': isSystem,
       if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
       if (updatedAt != null) 'updated_at': updatedAt!.toIso8601String(),
     };
-  }
-
-  ChatModel copyWeird({
-    String? id,
-    String? user1Id,
-    String? user2Id,
-    bool? isSystem,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-  }) {
-    return ChatModel(
-      id: id ?? this.id,
-      user1Id: user1Id ?? this.user1Id,
-      user2Id: user2Id ?? this.user2Id,
-      isSystem: isSystem ?? this.isSystem,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
-    );
   }
 }
 
@@ -67,9 +57,9 @@ class ChatList {
   ChatList({required this.chats, this.totalCount = 0});
 
   factory ChatList.fromJson(List<dynamic> jsonList) {
-    List<ChatModel> chatModels = jsonList
+    final items = jsonList
         .map((jsonItem) => ChatModel.fromJson(jsonItem))
         .toList();
-    return ChatList(chats: chatModels, totalCount: chatModels.length);
+    return ChatList(chats: items, totalCount: items.length);
   }
 }

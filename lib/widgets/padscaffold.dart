@@ -34,7 +34,7 @@ class _PadScaffoldState extends State<PadScaffold> {
   late final TextEditingController emailController;
   Future<ChatList?>? dataChat;
   bool isLoading = false;
-
+  final userId = Hive.box("userData").get("id") ?? "";
   @override
   void initState() {
     super.initState();
@@ -198,7 +198,9 @@ class _PadScaffoldState extends State<PadScaffold> {
                                   ),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                title: Text('Chat ID: ${chat.id}'),
+                                title: Text(
+                                  '${userId == chat.user1Id ? chat.user2Name : chat.user1Name}',
+                                ),
                               );
                             },
                           );
