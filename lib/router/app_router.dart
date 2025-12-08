@@ -20,6 +20,11 @@ class AppRouter extends RootStackRouter {
           initial: true,
           transitionsBuilder: TransitionsBuilders.fadeIn,
         ),
+        CustomRoute(
+          page: ChatRoute.page,
+          path: 'chat/:chatId',
+          transitionsBuilder: TransitionsBuilders.fadeIn,
+        ),
       ],
     ),
   ];
