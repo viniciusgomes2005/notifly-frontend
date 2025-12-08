@@ -6,6 +6,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:notifly_frontend/api/api_manager.dart';
 import 'package:notifly_frontend/colors.dart';
 import 'package:notifly_frontend/models/message_model.dart';
+import 'package:notifly_frontend/widgets/background.dart';
 
 @RoutePage()
 class ChatPage extends StatefulWidget {
@@ -64,7 +65,6 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Future<void> _pollMessages() async {
-    print('Polling messages...');
     if (_isLoading) return;
     try {
       final msgs = await ApiManager().getChatMessages(widget.chatId);
@@ -84,7 +84,9 @@ class _ChatPageState extends State<ChatPage> {
       index,
       duration: const Duration(milliseconds: 650),
     );
-    _scrollToBottom();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToBottom(jump: true);
+    });
   }
 
   Future<void> _handleSend() async {
@@ -106,7 +108,7 @@ class _ChatPageState extends State<ChatPage> {
 
   void _scrollToBottom({bool jump = false}) {
     if (!_scrollController.hasClients) return;
-    final pos = _scrollController.position.maxScrollExtent + 80;
+    final pos = _scrollController.position.maxScrollExtent;
     if (jump) {
       _scrollController.jumpTo(pos);
     } else {
@@ -170,7 +172,6 @@ class _ChatPageState extends State<ChatPage> {
   ) {
     final msg = _messages[index];
     final isMe = msg.senderId == _currentUserId;
-
     final curved = CurvedAnimation(parent: animation, curve: Curves.elasticOut);
 
     return SizeTransition(
@@ -212,144 +213,176 @@ class _ChatPageState extends State<ChatPage> {
               color: bgColor,
               child: SizedBox(
                 height: h,
-                child: Column(
+                child: Stack(
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(12, 8, 16, 4),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.chat_bubble_outline,
-                            color: headerSub,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Chat',
-                            style: TextStyle(
-                              color: headerColor,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            '#${widget.chatId.substring(0, 6)}',
-                            style: TextStyle(color: headerSub, fontSize: 12),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Divider(
-                      height: 1,
-                      color: isDark
-                          ? Colors.white.withOpacity(0.12)
-                          : Colors.black.withOpacity(0.06),
-                    ),
-                    Expanded(
-                      child: _isLoading
-                          ? Center(
-                              child: CircularProgressIndicator(
-                                color: isDark ? pastelPeach : lightPurple,
-                              ),
-                            )
-                          : AnimatedList(
-                              key: _listKey,
-                              controller: _scrollController,
-                              initialItemCount: _messages.length,
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 12,
-                                horizontal: 4,
-                              ),
-                              itemBuilder: (context, index, animation) =>
-                                  _animatedItem(
-                                    context,
-                                    index,
-                                    animation,
-                                    isDark,
-                                  ),
-                            ),
-                    ),
-                    SafeArea(
-                      top: false,
-                      child: Container(
-                        padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? Colors.black.withOpacity(0.18)
-                              : Colors.black.withOpacity(0.03),
-                          border: Border(
-                            top: BorderSide(
-                              color: isDark
-                                  ? Colors.white.withOpacity(0.12)
-                                  : Colors.black.withOpacity(0.06),
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: Align(
+                          alignment: Alignment.bottomRight,
+                          child: AnimatedSwitcher(
+                            duration: const Duration(seconds: 1),
+                            transitionBuilder: (child, animation) =>
+                                FadeTransition(
+                                  opacity: animation,
+                                  child: child,
+                                ),
+                            child: Opacity(
+                              key: ValueKey<bool>(isDark),
+                              opacity: 0.22,
+                              child: isDark
+                                  ? const DarkBackground()
+                                  : const LightBackground(),
                             ),
                           ),
                         ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                controller: _msgController,
+                      ),
+                    ),
+                    Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(12, 8, 16, 4),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.chat_bubble_outline,
+                                color: headerSub,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Chat',
                                 style: TextStyle(
-                                  color: isDark ? Colors.white : Colors.black87,
-                                ),
-                                maxLines: null,
-                                decoration: InputDecoration(
-                                  hintText: 'Mensagem...',
-                                  hintStyle: TextStyle(
-                                    color: isDark
-                                        ? Colors.white.withOpacity(0.6)
-                                        : Colors.black.withOpacity(0.4),
-                                  ),
-                                  filled: true,
-                                  fillColor: isDark
-                                      ? Colors.white.withOpacity(0.06)
-                                      : Colors.black.withOpacity(0.03),
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    vertical: 10,
-                                    horizontal: 14,
-                                  ),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: BorderSide.none,
-                                  ),
+                                  color: headerColor,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            GestureDetector(
-                              onTap: _handleSend,
-                              child: Container(
-                                width: 44,
-                                height: 44,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  gradient: LinearGradient(
-                                    colors: isDark
-                                        ? [lightPurple, pastelPeach]
-                                        : [lightPurple, pastelPurple],
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(
-                                        isDark ? 0.4 : 0.2,
-                                      ),
-                                      blurRadius: 12,
-                                      offset: const Offset(0, 4),
-                                    ),
-                                  ],
-                                ),
-                                child: const Icon(
-                                  Icons.send_rounded,
-                                  color: Colors.white,
-                                  size: 20,
+                              const SizedBox(width: 8),
+                              Text(
+                                '#${widget.chatId.substring(0, 6)}',
+                                style: TextStyle(
+                                  color: headerSub,
+                                  fontSize: 12,
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
+                        Divider(
+                          height: 1,
+                          color: isDark
+                              ? Colors.white.withOpacity(0.12)
+                              : Colors.black.withOpacity(0.06),
+                        ),
+                        Expanded(
+                          child: _isLoading
+                              ? Center(
+                                  child: CircularProgressIndicator(
+                                    color: isDark ? pastelPeach : lightPurple,
+                                  ),
+                                )
+                              : AnimatedList(
+                                  key: _listKey,
+                                  controller: _scrollController,
+                                  initialItemCount: _messages.length,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 12,
+                                    horizontal: 4,
+                                  ),
+                                  itemBuilder: (context, index, animation) =>
+                                      _animatedItem(
+                                        context,
+                                        index,
+                                        animation,
+                                        isDark,
+                                      ),
+                                ),
+                        ),
+                        SafeArea(
+                          top: false,
+                          child: Container(
+                            padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? Colors.black.withOpacity(0.18)
+                                  : Colors.black.withOpacity(0.03),
+                              border: Border(
+                                top: BorderSide(
+                                  color: isDark
+                                      ? Colors.white.withOpacity(0.12)
+                                      : Colors.black.withOpacity(0.06),
+                                ),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: TextField(
+                                    controller: _msgController,
+                                    style: TextStyle(
+                                      color: isDark
+                                          ? Colors.white
+                                          : Colors.black87,
+                                    ),
+                                    maxLines: null,
+                                    decoration: InputDecoration(
+                                      hintText: 'Mensagem...',
+                                      hintStyle: TextStyle(
+                                        color: isDark
+                                            ? Colors.white.withOpacity(0.6)
+                                            : Colors.black.withOpacity(0.4),
+                                      ),
+                                      filled: true,
+                                      fillColor: isDark
+                                          ? Colors.white.withOpacity(0.06)
+                                          : Colors.black.withOpacity(0.03),
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                            vertical: 10,
+                                            horizontal: 14,
+                                          ),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(20),
+                                        borderSide: BorderSide.none,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                GestureDetector(
+                                  onTap: _handleSend,
+                                  child: Container(
+                                    width: 44,
+                                    height: 44,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      gradient: LinearGradient(
+                                        colors: isDark
+                                            ? [lightPurple, pastelPeach]
+                                            : [lightPurple, pastelPurple],
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(
+                                            isDark ? 0.4 : 0.2,
+                                          ),
+                                          blurRadius: 12,
+                                          offset: const Offset(0, 4),
+                                        ),
+                                      ],
+                                    ),
+                                    child: const Icon(
+                                      Icons.send_rounded,
+                                      color: Colors.white,
+                                      size: 20,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
