@@ -25,11 +25,6 @@ extension AuthApi on ApiManager {
 
       final user = UserModel.fromLoginJson(rawUser);
 
-      print('[auth.login] user: ${user.toJson()}');
-      print(
-        '[auth.login] token: ${tok.substring(0, tok.length.clamp(0, 12))}...',
-      );
-
       final box = Hive.box('userData');
       box.put('id', user.id);
       box.put('name', user.name);
@@ -84,7 +79,6 @@ extension AuthApi on ApiManager {
       _isAuthenticated = true;
 
       final user = UserModel.fromSignUpJson(rawUser);
-      print('[auth.register] user: ${user.toJson()}');
 
       final box = Hive.box('userData');
       box.put('id', user.id);

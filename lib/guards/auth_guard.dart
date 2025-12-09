@@ -5,10 +5,7 @@ import 'package:notifly_frontend/router/app_router.gr.dart';
 class AuthGuard extends AutoRouteGuard {
   @override
   void onNavigation(NavigationResolver resolver, StackRouter router) {
-    print("AuthGuard check:");
-    print(Hive.box("userData").get("id"));
     if (Hive.box("userData").get("id") == null) {
-      print("User not logged in, redirecting to login page.");
       resolver.redirectUntil(const LoginRoute());
       return;
     }

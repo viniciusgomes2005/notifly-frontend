@@ -32,13 +32,11 @@ class RegisterPage extends StatelessWidget {
               )
               .then(
                 (_) => {
-                  print("Fudeu"),
                   context.successSnackBar('Usuário cadastrado com sucesso!'),
                   ApiManager()
                       .login(emailController.text, passwordController.text)
                       .then(
                         (_) => {
-                          print("f0de8n"),
                           context.successSnackBar(
                             'Login realizado com sucesso!',
                           ),

@@ -26,7 +26,6 @@ extension ChatApi on ApiManager {
       'chats/user/$userId',
       headers: {if (tok.isNotEmpty) 'Authorization': 'Bearer $tok'},
     );
-    print(response);
     return ChatList.fromJson(response['chats']);
   }
 }

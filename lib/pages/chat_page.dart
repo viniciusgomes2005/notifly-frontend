@@ -5,8 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:notifly_frontend/api/api_manager.dart';
 import 'package:notifly_frontend/colors.dart';
+import 'package:notifly_frontend/extensions.dart';
 import 'package:notifly_frontend/models/message_model.dart';
 import 'package:notifly_frontend/widgets/background.dart';
+import 'package:notifly_frontend/widgets/message.dart';
 
 @RoutePage()
 class ChatPage extends StatefulWidget {
@@ -27,6 +29,12 @@ class _ChatPageState extends State<ChatPage> {
   bool _isLoading = true;
   late final String _currentUserId;
   Timer? _pollTimer;
+  String? _previewImageUrl;
+
+  final RegExp _imgUrlRegex = RegExp(
+    r'(https?:\/\/\S+\.(?:png|jpe?g|gif|webp|bmp|svg))',
+    caseSensitive: false,
+  );
 
   @override
   void initState() {
@@ -91,16 +99,21 @@ class _ChatPageState extends State<ChatPage> {
 
   Future<void> _handleSend() async {
     final text = _msgController.text.trim();
-    if (text.isEmpty) return;
+    if (text.isEmpty && _previewImageUrl == null) return;
 
+    final imgUrl = _previewImageUrl;
     _msgController.clear();
+    setState(() {
+      _previewImageUrl = null;
+    });
 
     try {
       final sent = await ApiManager().sendMessage(
         chatId: widget.chatId,
         senderId: _currentUserId,
-        kind: TypeMessage.text,
-        text: text,
+        kind: imgUrl != null ? TypeMessage.image : TypeMessage.text,
+        text: text.isNotEmpty ? text : null,
+        imgUrl: imgUrl,
       );
       _insertMessage(sent);
     } catch (_) {}
@@ -120,48 +133,17 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
-  Widget _buildBubble(MessageModel msg, bool isMe, bool isDark) {
-    final text = msg.text ?? '';
-    final bg = isMe
-        ? lightPurple
-        : isDark
-        ? darkPurple.withOpacity(0.6)
-        : pastelPeach;
-    final fg = isDark
-        ? Colors.white
-        : isMe
-        ? Colors.white
-        : Colors.black87;
-    final align = isMe ? Alignment.centerRight : Alignment.centerLeft;
-    final radius = BorderRadius.only(
-      topLeft: const Radius.circular(18),
-      topRight: const Radius.circular(18),
-      bottomLeft: isMe ? const Radius.circular(18) : const Radius.circular(4),
-      bottomRight: isMe ? const Radius.circular(4) : const Radius.circular(18),
-    );
-
-    return Align(
-      alignment: align,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 420),
-        child: Container(
-          margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
-          decoration: BoxDecoration(
-            color: bg,
-            borderRadius: radius,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(isDark ? 0.4 : 0.12),
-                blurRadius: 14,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Text(text, style: TextStyle(color: fg, fontSize: 14)),
-        ),
-      ),
-    );
+  void _updatePreviewFromText(String value) {
+    final match = _imgUrlRegex.firstMatch(value);
+    if (match != null) {
+      setState(() {
+        _previewImageUrl = match.group(0);
+      });
+    } else {
+      setState(() {
+        _previewImageUrl = null;
+      });
+    }
   }
 
   Widget _animatedItem(
@@ -184,7 +166,7 @@ class _ChatPageState extends State<ChatPage> {
         ).animate(curved),
         child: FadeTransition(
           opacity: animation,
-          child: _buildBubble(msg, isMe, isDark),
+          child: Message(msg: msg, isMe: isMe, isDark: isDark),
         ),
       ),
     );
@@ -314,69 +296,220 @@ class _ChatPageState extends State<ChatPage> {
                                 ),
                               ),
                             ),
-                            child: Row(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
                               children: [
-                                Expanded(
-                                  child: TextField(
-                                    controller: _msgController,
-                                    style: TextStyle(
-                                      color: isDark
-                                          ? Colors.white
-                                          : Colors.black87,
-                                    ),
-                                    maxLines: null,
-                                    decoration: InputDecoration(
-                                      hintText: 'Mensagem...',
-                                      hintStyle: TextStyle(
-                                        color: isDark
-                                            ? Colors.white.withOpacity(0.6)
-                                            : Colors.black.withOpacity(0.4),
-                                      ),
-                                      filled: true,
-                                      fillColor: isDark
-                                          ? Colors.white.withOpacity(0.06)
-                                          : Colors.black.withOpacity(0.03),
-                                      contentPadding:
-                                          const EdgeInsets.symmetric(
-                                            vertical: 10,
-                                            horizontal: 14,
-                                          ),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(20),
-                                        borderSide: BorderSide.none,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                GestureDetector(
-                                  onTap: _handleSend,
-                                  child: Container(
-                                    width: 44,
-                                    height: 44,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      gradient: LinearGradient(
-                                        colors: isDark
-                                            ? [lightPurple, pastelPeach]
-                                            : [lightPurple, pastelPurple],
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(
-                                            isDark ? 0.4 : 0.2,
-                                          ),
-                                          blurRadius: 12,
-                                          offset: const Offset(0, 4),
+                                AnimatedSwitcher(
+                                  duration: const Duration(milliseconds: 250),
+                                  transitionBuilder: (child, animation) =>
+                                      SizeTransition(
+                                        sizeFactor: animation,
+                                        axisAlignment: -1,
+                                        child: FadeTransition(
+                                          opacity: animation,
+                                          child: child,
                                         ),
-                                      ],
+                                      ),
+                                  child: (_previewImageUrl != null)
+                                      ? Container(
+                                          key: const ValueKey('preview'),
+                                          margin: const EdgeInsets.only(
+                                            bottom: 8,
+                                          ),
+                                          padding: const EdgeInsets.all(6),
+                                          decoration: BoxDecoration(
+                                            color: isDark
+                                                ? Colors.white.withOpacity(0.06)
+                                                : Colors.black.withOpacity(
+                                                    0.03,
+                                                  ),
+                                            borderRadius: BorderRadius.circular(
+                                              14,
+                                            ),
+                                            border: Border.all(
+                                              color: isDark
+                                                  ? Colors.white.withOpacity(
+                                                      0.18,
+                                                    )
+                                                  : Colors.black.withOpacity(
+                                                      0.08,
+                                                    ),
+                                            ),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              ClipRRect(
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                                child: ConstrainedBox(
+                                                  constraints:
+                                                      const BoxConstraints(
+                                                        maxHeight: 96,
+                                                        maxWidth: 140,
+                                                        minHeight: 64,
+                                                        minWidth: 96,
+                                                      ),
+                                                  child: Image.network(
+                                                    _previewImageUrl!,
+                                                    fit: BoxFit.cover,
+                                                    loadingBuilder: (context, child, progress) {
+                                                      if (progress == null) {
+                                                        return child;
+                                                      }
+                                                      return SizedBox(
+                                                        height: 64,
+                                                        child: Center(
+                                                          child: CircularProgressIndicator(
+                                                            strokeWidth: 2,
+                                                            value:
+                                                                progress.expectedTotalBytes !=
+                                                                    null
+                                                                ? progress.cumulativeBytesLoaded /
+                                                                      progress
+                                                                          .expectedTotalBytes!
+                                                                : null,
+                                                          ),
+                                                        ),
+                                                      );
+                                                    },
+                                                    errorBuilder: (context, error, stack) {
+                                                      WidgetsBinding.instance
+                                                          .addPostFrameCallback((
+                                                            _,
+                                                          ) {
+                                                            if (!mounted)
+                                                              return;
+                                                            context.errorSnackBar(
+                                                              'Erro ao carregar a prévia da imagem.',
+                                                            );
+                                                            print(
+                                                              error.toString(),
+                                                            );
+                                                          });
+                                                      return Container(
+                                                        height: 64,
+                                                        width: 96,
+                                                        color: Colors.black
+                                                            .withOpacity(0.08),
+                                                        alignment:
+                                                            Alignment.center,
+                                                        child: Icon(
+                                                          Icons
+                                                              .broken_image_outlined,
+                                                          color: isDark
+                                                              ? Colors.white70
+                                                              : Colors.black54,
+                                                        ),
+                                                      );
+                                                    },
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Flexible(
+                                                child: Text(
+                                                  'Prévia da imagem detectada',
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    color: isDark
+                                                        ? Colors.white70
+                                                        : Colors.black54,
+                                                  ),
+                                                ),
+                                              ),
+                                              IconButton(
+                                                visualDensity:
+                                                    VisualDensity.compact,
+                                                iconSize: 18,
+                                                splashRadius: 18,
+                                                onPressed: () {
+                                                  setState(() {
+                                                    _previewImageUrl = null;
+                                                  });
+                                                },
+                                                icon: Icon(
+                                                  Icons.close_rounded,
+                                                  color: isDark
+                                                      ? Colors.white54
+                                                      : Colors.black45,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        )
+                                      : const SizedBox.shrink(
+                                          key: ValueKey('no_preview'),
+                                        ),
+                                ),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: TextField(
+                                        controller: _msgController,
+                                        onChanged: _updatePreviewFromText,
+                                        style: TextStyle(
+                                          color: isDark
+                                              ? Colors.white
+                                              : Colors.black87,
+                                        ),
+                                        maxLines: null,
+                                        decoration: InputDecoration(
+                                          hintText: 'Mensagem...',
+                                          hintStyle: TextStyle(
+                                            color: isDark
+                                                ? Colors.white.withOpacity(0.6)
+                                                : Colors.black.withOpacity(0.4),
+                                          ),
+                                          filled: true,
+                                          fillColor: isDark
+                                              ? Colors.white.withOpacity(0.06)
+                                              : Colors.black.withOpacity(0.03),
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                vertical: 10,
+                                                horizontal: 14,
+                                              ),
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              20,
+                                            ),
+                                            borderSide: BorderSide.none,
+                                          ),
+                                        ),
+                                      ),
                                     ),
-                                    child: const Icon(
-                                      Icons.send_rounded,
-                                      color: Colors.white,
-                                      size: 20,
+                                    const SizedBox(width: 8),
+                                    GestureDetector(
+                                      onTap: _handleSend,
+                                      child: Container(
+                                        width: 44,
+                                        height: 44,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          gradient: LinearGradient(
+                                            colors: isDark
+                                                ? [lightPurple, pastelPeach]
+                                                : [lightPurple, pastelPurple],
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(
+                                                isDark ? 0.4 : 0.2,
+                                              ),
+                                              blurRadius: 12,
+                                              offset: const Offset(0, 4),
+                                            ),
+                                          ],
+                                        ),
+                                        child: const Icon(
+                                          Icons.send_rounded,
+                                          color: Colors.white,
+                                          size: 20,
+                                        ),
+                                      ),
                                     ),
-                                  ),
+                                  ],
                                 ),
                               ],
                             ),
