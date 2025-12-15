@@ -5,6 +5,7 @@ import 'package:notifly_frontend/colors.dart';
 import 'package:notifly_frontend/models/message_model.dart';
 import 'package:notifly_frontend/models/task_model.dart';
 import 'package:notifly_frontend/api/api_manager.dart';
+import 'package:notifly_frontend/widgets/formatted_message_text.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class Message extends StatelessWidget {
@@ -118,7 +119,11 @@ class Message extends StatelessWidget {
               if (hasText && imgUrl != null && imgUrl.isNotEmpty)
                 const SizedBox(height: 8),
               if (hasText)
-                Text(plainText, style: TextStyle(color: fg, fontSize: 14)),
+                FormattedMessageText(
+                  text: plainText,
+                  style: TextStyle(color: fg, fontSize: 14),
+                  isDark: isDark,
+                ),
               if (calSpec != null) ...[
                 if (hasText || imgUrl != null) const SizedBox(height: 10),
                 _MessageCalendarWithTasks(spec: calSpec, isDark: isDark),

@@ -201,7 +201,7 @@ class _PadScaffoldState extends State<PadScaffold> {
                                 title: Text(
                                   '${userId == chat.user1Id ? chat.user2Name : chat.user1Name}',
                                 ),
-                              );
+                              ).withPadding(const EdgeInsets.only(bottom: 8));
                             },
                           );
                         },
